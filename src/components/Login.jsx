@@ -6,38 +6,45 @@ const Login = ({ onLogin }) => {
   const [password, setPassword] = useState("");
 
   const handleLogin = async (e) => {
-    e.preventDefault(); // Prevent the default form submission behavior
+    e.preventDefault();
 
     try {
       const response = await axios.post("http://localhost:3000/api/v1/users/login", {
         email,
         password,
       });
-      const { token, userInfo } = response.data.data;
 
-      localStorage.setItem("token", token); // Store the token
-      localStorage.setItem("user", JSON.stringify(userInfo)); // Store the user info
+      const { token, refreshToken, userInfo } = response.data.data;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("refreshToken", refreshToken);
+      localStorage.setItem("user", JSON.stringify(userInfo));
+
       alert("Login successful!");
 
       if (onLogin) {
-        onLogin(); // Notify the parent component about the successful login
+        onLogin();
       }
     } catch (error) {
       console.error("Error logging in:", error);
-      alert("Invalid email or password");
+      alert(error.response?.data?.message || "Invalid email or password");
     }
   };
 
   return (
-    <div>
-      <h2>Login</h2>
-      <form onSubmit={handleLogin}>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+      <h2 className="text-2xl font-bold mb-4">Login</h2>
+      <form
+        onSubmit={handleLogin}
+        className="bg-white shadow-md rounded-lg p-6 w-full max-w-sm"
+      >
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <input
           type="password"
@@ -45,8 +52,14 @@ const Login = ({ onLogin }) => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        <button type="submit">Login</button>
+        <button
+          type="submit"
+          className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
+        >
+          Login
+        </button>
       </form>
     </div>
   );

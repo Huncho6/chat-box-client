@@ -1,42 +1,22 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { io } from "socket.io-client";
+import UserList from "./UserList";
+import axios from "axios";
 
-const token = localStorage.getItem("token"); // Retrieve the token from localStorage
+const token = localStorage.getItem("token");
 const socket = io("http://localhost:3000", {
   auth: {
-    token, // Send the token during the connection handshake
+    token,
   },
 });
 
 const ChatBox = () => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
-  const [recipient, setRecipient] = useState(""); // Selected recipient
-  const [users, setUsers] = useState([]); // List of all users
-  const [searchQuery, setSearchQuery] = useState(""); // Search query for filtering users
+  const [recipient, setRecipient] = useState("");
 
   useEffect(() => {
-    // Fetch all users
-    const fetchUsers = async () => {
-      try {
-        const response = await axios.get("http://localhost:3000/api/v1/users", {
-          headers: {
-            Authorization: `Bearer ${token}`, // Include the token in the headers
-          },
-        });
-        console.log("Fetched users:", response.data); // Debugging
-        setUsers(response.data);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      }
-    };
-
-    fetchUsers();
-
-    // Listen for new messages via Socket.IO
     socket.on("private message", (msg) => {
-      console.log("Received private message:", msg); // Debugging
       setMessages((prevMessages) => [...prevMessages, msg]);
     });
 
@@ -45,40 +25,34 @@ const ChatBox = () => {
     };
   }, []);
 
-  const searchUser = () => {
-    console.log("Search query:", searchQuery); // Debugging
-    console.log("Users array:", users); // Debugging
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (!recipient) return;
 
-    // Get the currently logged-in user's information from localStorage or token
-    const loggedInUser = JSON.parse(localStorage.getItem("user")); // Assuming user info is stored in localStorage
+      const token = localStorage.getItem("token");
 
-    // Check if the search query matches the logged-in user's username or email
-    if (
-      searchQuery.toLowerCase() === loggedInUser.username.toLowerCase() ||
-      searchQuery.toLowerCase() === loggedInUser.email.toLowerCase()
-    ) {
-      alert("You cannot chat with yourself!");
-      return;
-    }
+      try {
+        const response = await axios.get(
+          `http://localhost:3000/api/v1/chat/private/${recipient}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-    // Find the user in the users array
-    const foundUser = users.find(
-      (user) =>
-        user.username.toLowerCase() === searchQuery.toLowerCase() ||
-        user.email.toLowerCase() === searchQuery.toLowerCase()
-    );
+        setMessages(response.data.messages);
+      } catch (error) {
+        console.error("Error fetching messages:", error);
+      }
+    };
 
-    if (foundUser) {
-      setRecipient(foundUser.username);
-      alert(`Chatting with ${foundUser.username}`);
-    } else {
-      alert("User not found");
-    }
-  };
+    fetchMessages();
+  }, [recipient]);
 
   const sendMessage = async () => {
     if (!recipient) {
-      alert("Please select a recipient first by searching for a user or clicking on a message.");
+      alert("Please select a recipient first.");
       return;
     }
 
@@ -88,63 +62,61 @@ const ChatBox = () => {
     }
 
     try {
-      // Emit the message to the server
       socket.emit("private message", { recipient, content: message });
-
-      // Add the message to the local chat
       setMessages((prevMessages) => [
         ...prevMessages,
-        { sender: "You", content: message }, // Add the sent message to the chat
+        { sender: "You", content: message },
       ]);
-      setMessage(""); // Clear the message input
+      setMessage("");
     } catch (error) {
       console.error("Error sending message:", error);
-      alert("Failed to send the message. Please try again.");
+      alert("Failed to send the message.");
     }
   };
 
-  const handleReply = (sender) => {
-    setRecipient(sender); // Set the sender as the recipient
-    alert(`Replying to ${sender}`);
-  };
-
   return (
-    <div>
-      <h2>Chat</h2>
-      <div>
-        <label>Search for a user:</label>
-        <input
-          type="text"
-          placeholder="Search by username or email"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <button onClick={searchUser}>Search</button>
-      </div>
-      <div>
-        <h3>Chatting with: {recipient || "No recipient selected"}</h3>
-      </div>
-      <div>
-        {messages.length > 0 ? (
-          messages.map((msg, index) => (
-            <p
-              key={index}
-              onClick={() => handleReply(msg.sender)} // Set the sender as the recipient when clicked
-              style={{ cursor: "pointer", color: msg.sender === "You" ? "blue" : "black" }}
+    <div className="flex flex-col items-center p-4 bg-gray-100 min-h-screen">
+      <h2 className="text-2xl font-bold mb-4">Chat</h2>
+      <UserList onSelectUser={setRecipient} />
+      {recipient && (
+        <div className="mt-4 w-full max-w-md">
+          <h3 className="text-lg font-semibold mb-2">
+            Chatting with:{" "}
+            <span className="text-blue-500">{recipient}</span>
+          </h3>
+          <div className="bg-white shadow-md rounded-lg p-4 h-64 overflow-y-auto">
+            {messages.length > 0 ? (
+              messages.map((msg, index) => (
+                <p
+                  key={index}
+                  className={`${
+                    msg.sender === "You" ? "text-blue-500" : "text-gray-700"
+                  }`}
+                >
+                  {msg.sender}: {msg.content}
+                </p>
+              ))
+            ) : (
+              <p className="text-gray-500">No messages yet</p>
+            )}
+          </div>
+          <div className="mt-4 flex items-center space-x-2">
+            <input
+              type="text"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Type your message..."
+            />
+            <button
+              onClick={sendMessage}
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
             >
-              {msg.sender}: {msg.content}
-            </p>
-          ))
-        ) : (
-          <p>No messages yet</p>
-        )}
-      </div>
-      <input
-        type="text"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-      />
-      <button onClick={sendMessage}>Send</button>
+              Send
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
