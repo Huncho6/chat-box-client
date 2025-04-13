@@ -7,7 +7,7 @@ const ForgotPassword = () => {
   const handleForgotPassword = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:3000/api/v1/users/forgot-password", {
+      await axios.post("https://chat-box-server-rgpe.onrender.com/api/v1/users/forgot-password", {
         email,
       });
       alert("Password reset instructions have been sent to your email.");

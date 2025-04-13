@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 
 const token = localStorage.getItem("token");
-const socket = io("http://localhost:3000", {
+const socket = io("https://chat-box-server-rgpe.onrender.com", {
   auth: {
     token,
   },

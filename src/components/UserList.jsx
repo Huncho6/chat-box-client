@@ -10,7 +10,7 @@ const UserList = ({ onSelectUser }) => {
       const token = localStorage.getItem("token");
 
       try {
-        const response = await axios.get("http://localhost:3000/api/v1/users", {
+        const response = await axios.get("https://chat-box-server-rgpe.onrender.com/api/v1/users", {
           headers: {
             Authorization: `Bearer ${token}`,
           },

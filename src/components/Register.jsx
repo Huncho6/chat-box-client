@@ -9,7 +9,7 @@ const Register = ({ onRegister }) => {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:3000/api/v1/users/register", {
+      await axios.post("https://chat-box-server-rgpe.onrender.com/api/v1/users/register", {
         username,
         email,
         password,

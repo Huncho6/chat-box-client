@@ -1,7 +1,7 @@
 import React, { useState, useContext } from "react";
 import axios from "axios";
 import { AuthContext } from "./AuthProvider";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate, Link } from "react-router-dom"; // Import Link
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -14,7 +14,7 @@ const Login = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/api/v1/users/login",
+        "https://chat-box-server-rgpe.onrender.com/api/v1/users/login",
         {
           email,
           password,
@@ -63,6 +63,20 @@ const Login = () => {
           Login
         </button>
       </form>
+      <div className="mt-4 text-center">
+        <p className="text-gray-600">
+          Don't have an account?{" "}
+          <Link to="/register" className="text-blue-500 hover:underline">
+            Register
+          </Link>
+        </p>
+        <p className="text-gray-600 mt-2">
+          Forgot your password?{" "}
+          <Link to="/forgot-password" className="text-blue-500 hover:underline">
+            Reset Password
+          </Link>
+        </p>
+      </div>
     </div>
   );
 };

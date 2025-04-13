@@ -19,7 +19,7 @@ const AuthProvider = ({ children }) => {
       }
 
       try {
-        const response = await axios.get("http://localhost:3000/api/v1/users/me", {
+        const response = await axios.get("https://chat-box-server-rgpe.onrender.com/api/v1/users/me", {
           headers: {
             Authorization: `Bearer ${token}`,
           },

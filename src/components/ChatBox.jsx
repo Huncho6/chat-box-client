@@ -4,7 +4,7 @@ import UserList from "./UserList";
 import axios from "axios";
 
 const token = localStorage.getItem("token");
-const socket = io("http://localhost:3000", {
+const socket = io("https://chat-box-server-rgpe.onrender.com", {
   auth: {
     token,
   },
@@ -33,7 +33,7 @@ const ChatBox = () => {
 
       try {
         const response = await axios.get(
-          `http://localhost:3000/api/v1/chat/private/${recipient}`,
+          `https://chat-box-server-rgpe.onrender.com/api/v1/chat/private/${recipient}`,
           {
             headers: {
               Authorization: `Bearer ${token}`, // Include the token in the headers
@@ -70,7 +70,7 @@ const ChatBox = () => {
       };
 
       const response = await axios.post(
-        "http://localhost:3000/api/v1/chat/private",
+        "https://chat-box-server-rgpe.onrender.com/api/v1/chat/private",
         newMessage,
         {
           headers: {
@@ -98,8 +98,7 @@ const ChatBox = () => {
       {recipient && (
         <div className="mt-4 w-full max-w-md">
           <h3 className="text-lg font-semibold mb-2">
-            Chatting with:{" "}
-            <span className="text-blue-500">{recipient}</span>
+            Chatting with: <span className="text-blue-500">{recipient}</span>
           </h3>
           <div className="bg-white shadow-md rounded-lg p-4 h-64 overflow-y-auto">
             {messages.length > 0 ? (
