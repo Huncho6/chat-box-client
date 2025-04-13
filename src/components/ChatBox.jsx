@@ -15,6 +15,7 @@ const ChatBox = () => {
   const [message, setMessage] = useState("");
   const [recipient, setRecipient] = useState("");
 
+  // Listen for incoming private messages
   useEffect(() => {
     socket.on("private message", (msg) => {
       setMessages((prevMessages) => [...prevMessages, msg]);
@@ -25,18 +26,17 @@ const ChatBox = () => {
     };
   }, []);
 
+  // Fetch messages for the selected recipient
   useEffect(() => {
     const fetchMessages = async () => {
       if (!recipient) return;
-
-      const token = localStorage.getItem("token");
 
       try {
         const response = await axios.get(
           `http://localhost:3000/api/v1/chat/private/${recipient}`,
           {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${token}`, // Include the token in the headers
             },
           }
         );
@@ -44,12 +44,14 @@ const ChatBox = () => {
         setMessages(response.data.messages);
       } catch (error) {
         console.error("Error fetching messages:", error);
+        alert("Failed to fetch messages.");
       }
     };
 
     fetchMessages();
   }, [recipient]);
 
+  // Send a new message
   const sendMessage = async () => {
     if (!recipient) {
       alert("Please select a recipient first.");
@@ -62,12 +64,27 @@ const ChatBox = () => {
     }
 
     try {
-      socket.emit("private message", { recipient, content: message });
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { sender: "You", content: message },
-      ]);
-      setMessage("");
+      const newMessage = {
+        recipient, // Send the recipient's username
+        content: message,
+      };
+
+      const response = await axios.post(
+        "http://localhost:3000/api/v1/chat/private",
+        newMessage,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Include the token in the headers
+          },
+        }
+      );
+
+      // Emit the message to the Socket.IO server
+      socket.emit("private message", response.data.data);
+
+      // Update the local message list
+      setMessages((prevMessages) => [...prevMessages, response.data.data]);
+      setMessage(""); // Clear the input field
     } catch (error) {
       console.error("Error sending message:", error);
       alert("Failed to send the message.");
@@ -87,13 +104,15 @@ const ChatBox = () => {
           <div className="bg-white shadow-md rounded-lg p-4 h-64 overflow-y-auto">
             {messages.length > 0 ? (
               messages.map((msg, index) => (
-                <p
-                  key={index}
-                  className={`${
-                    msg.sender === "You" ? "text-blue-500" : "text-gray-700"
-                  }`}
-                >
-                  {msg.sender}: {msg.content}
+                <p key={index} className="mb-2">
+                  <span className="font-bold">
+                    {msg.sender.username || "Unknown"}:
+                  </span>{" "}
+                  {msg.content}
+                  <br />
+                  <span className="text-gray-500 text-sm">
+                    {new Date(msg.timestamp).toLocaleString()}
+                  </span>
                 </p>
               ))
             ) : (

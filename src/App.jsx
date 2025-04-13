@@ -1,41 +1,37 @@
-import React, { useState } from "react";
+import React from "react";
+import { Routes, Route } from "react-router-dom";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import ChatBox from "./components/ChatBox";
 import ForgotPassword from "./components/ForgotPassword";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Notification from "./components/Notification"; // Import the Notification component
 
-const MainApp = () => {
-  const [currentView, setCurrentView] = useState("login"); // login, register, forgotPassword, chat
-
-  const handleLogin = () => setCurrentView("chat");
-  const handleRegister = () => setCurrentView("login");
-  const handleForgotPassword = () => setCurrentView("forgotPassword");
-
+const App = () => {
   return (
-    <div>
-      {currentView === "login" && (
-        <Login onLogin={handleLogin} />
-      )}
-      {currentView === "register" && (
-        <Register onRegister={handleRegister} />
-      )}
-      {currentView === "forgotPassword" && (
-        <ForgotPassword />
-      )}
-      {currentView === "chat" && <ChatBox />}
-      <div>
-        {currentView !== "register" && (
-          <button onClick={() => setCurrentView("register")}>Create Account</button>
-        )}
-        {currentView !== "login" && (
-          <button onClick={() => setCurrentView("login")}>Login</button>
-        )}
-        {currentView !== "forgotPassword" && (
-          <button onClick={() => setCurrentView("forgotPassword")}>Forgot Password</button>
-        )}
-      </div>
-    </div>
+    <>
+      <Notification /> {/* Add the Notification component */}
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+
+        {/* Protected Routes */}
+        <Route
+          path="/chat"
+          element={
+            <ProtectedRoute>
+              <ChatBox />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Default Route */}
+        <Route path="*" element={<Login />} />
+      </Routes>
+    </>
   );
 };
 
-export default MainApp;
+export default App;

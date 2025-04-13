@@ -39,7 +39,7 @@ const UserList = ({ onSelectUser }) => {
         {users.map((user) => (
           <li
             key={user._id}
-            onClick={() => onSelectUser(user.username)}
+            onClick={() => onSelectUser(user.username)} // Pass the username to the parent
             className="cursor-pointer p-2 hover:bg-gray-100 rounded-lg"
           >
             {user.username}

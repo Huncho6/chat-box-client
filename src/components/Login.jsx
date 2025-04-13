@@ -1,30 +1,32 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import axios from "axios";
+import { AuthContext } from "./AuthProvider";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
-const Login = ({ onLogin }) => {
+const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { login } = useContext(AuthContext);
+  const navigate = useNavigate(); // Initialize useNavigate
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await axios.post("http://localhost:3000/api/v1/users/login", {
-        email,
-        password,
-      });
+      const response = await axios.post(
+        "http://localhost:3000/api/v1/users/login",
+        {
+          email,
+          password,
+        }
+      );
 
       const { token, refreshToken, userInfo } = response.data.data;
 
-      localStorage.setItem("token", token);
-      localStorage.setItem("refreshToken", refreshToken);
-      localStorage.setItem("user", JSON.stringify(userInfo));
+      login(userInfo, token, refreshToken);
 
       alert("Login successful!");
-
-      if (onLogin) {
-        onLogin();
-      }
+      navigate("/chat"); // Navigate to the chat page after successful login
     } catch (error) {
       console.error("Error logging in:", error);
       alert(error.response?.data?.message || "Invalid email or password");
